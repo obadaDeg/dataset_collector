@@ -18,14 +18,16 @@ def sanitize_filename(filename):
 app = Flask(__name__)
 
 # Directory to save uploads
-UPLOAD_FOLDER = os.path.abspath("./uploads")
-VIDEO_FOLDER = os.path.join(UPLOAD_FOLDER, "videos")
-JSON_FOLDER = os.path.join(UPLOAD_FOLDER, "json_data")
+UPLOAD_FOLDER = os.path.join(os.environ.get('HOME', '/tmp'), 'uploads')
+VIDEO_FOLDER = os.path.join(UPLOAD_FOLDER, 'videos')
+JSON_FOLDER = os.path.join(UPLOAD_FOLDER, 'json_data')
 
 # Ensure directories exist
 os.makedirs(VIDEO_FOLDER, exist_ok=True)
 os.makedirs(JSON_FOLDER, exist_ok=True)
 
+if not os.access(VIDEO_FOLDER, os.W_OK) or not os.access(JSON_FOLDER, os.W_OK):
+    raise PermissionError("Upload directories are not writable.")
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
@@ -144,25 +146,20 @@ def list_datasets():
 
 @app.route("/download_all", methods=["GET"])
 def download_all_datasets():
-    """
-    Endpoint to download all datasets (videos and their corresponding JSON files) as a single ZIP archive.
-    """
     try:
+        print(f"Video Folder: {os.listdir(VIDEO_FOLDER)}")
+        print(f"JSON Folder: {os.listdir(JSON_FOLDER)}")
         zip_buffer = BytesIO()
-        missing_files = []  # Track datasets missing JSON files
+        missing_files = []
 
         with zipfile.ZipFile(zip_buffer, "w") as zip_file:
-            # Iterate through all video files
             for video_filename in os.listdir(VIDEO_FOLDER):
                 if video_filename.endswith(".mp4"):
-                    # Extract the timestamp from the video filename
                     timestamp = "-".join(video_filename.split("-")[:2])
                     video_path = os.path.join(VIDEO_FOLDER, video_filename)
 
-                    # Find the matching JSON file
                     matching_json_files = [
-                        f
-                        for f in os.listdir(JSON_FOLDER)
+                        f for f in os.listdir(JSON_FOLDER)
                         if timestamp in f and f.endswith(".json")
                     ]
 
@@ -173,17 +170,11 @@ def download_all_datasets():
                     json_filename = matching_json_files[0]
                     json_path = os.path.join(JSON_FOLDER, json_filename)
 
-                    # Add files to the ZIP
                     folder_name = timestamp
-                    zip_file.write(
-                        video_path, arcname=os.path.join(folder_name, video_filename)
-                    )
-                    zip_file.write(
-                        json_path, arcname=os.path.join(folder_name, json_filename)
-                    )
+                    zip_file.write(video_path, arcname=os.path.join(folder_name, video_filename))
+                    zip_file.write(json_path, arcname=os.path.join(folder_name, json_filename))
 
-        zip_buffer.seek(0)  # Reset the buffer position to the start
-
+        zip_buffer.seek(0)
         if missing_files:
             print(f"Missing JSON files: {missing_files}")
 
@@ -193,11 +184,8 @@ def download_all_datasets():
             as_attachment=True,
             download_name="all_datasets.zip",
         )
-
     except Exception as e:
-        return jsonify({"message": f"An error occurred: {str(e)}"}), 500
-
-    except Exception as e:
+        print(f"Error: {str(e)}")
         return jsonify({"message": f"An error occurred: {str(e)}"}), 500
 
 
