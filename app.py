@@ -18,9 +18,9 @@ def sanitize_filename(filename):
 app = Flask(__name__)
 
 # Directory to save uploads
-UPLOAD_FOLDER = os.path.join(os.environ.get('HOME', '/tmp'), 'uploads')
-VIDEO_FOLDER = os.path.join(UPLOAD_FOLDER, 'videos')
-JSON_FOLDER = os.path.join(UPLOAD_FOLDER, 'json_data')
+UPLOAD_FOLDER = os.path.join(os.environ.get("HOME", "/tmp"), "uploads")
+VIDEO_FOLDER = os.path.join(UPLOAD_FOLDER, "videos")
+JSON_FOLDER = os.path.join(UPLOAD_FOLDER, "json_data")
 
 # Ensure directories exist
 os.makedirs(VIDEO_FOLDER, exist_ok=True)
@@ -28,6 +28,7 @@ os.makedirs(JSON_FOLDER, exist_ok=True)
 
 if not os.access(VIDEO_FOLDER, os.W_OK) or not os.access(JSON_FOLDER, os.W_OK):
     raise PermissionError("Upload directories are not writable.")
+
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
@@ -159,7 +160,8 @@ def download_all_datasets():
                     video_path = os.path.join(VIDEO_FOLDER, video_filename)
 
                     matching_json_files = [
-                        f for f in os.listdir(JSON_FOLDER)
+                        f
+                        for f in os.listdir(JSON_FOLDER)
                         if timestamp in f and f.endswith(".json")
                     ]
 
@@ -171,8 +173,12 @@ def download_all_datasets():
                     json_path = os.path.join(JSON_FOLDER, json_filename)
 
                     folder_name = timestamp
-                    zip_file.write(video_path, arcname=os.path.join(folder_name, video_filename))
-                    zip_file.write(json_path, arcname=os.path.join(folder_name, json_filename))
+                    zip_file.write(
+                        video_path, arcname=os.path.join(folder_name, video_filename)
+                    )
+                    zip_file.write(
+                        json_path, arcname=os.path.join(folder_name, json_filename)
+                    )
 
         zip_buffer.seek(0)
         if missing_files:
@@ -187,6 +193,20 @@ def download_all_datasets():
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({"message": f"An error occurred: {str(e)}"}), 500
+
+
+@app.route("/debug", methods=["GET"])
+def debug_files():
+    return jsonify(
+        {
+            "videos": (
+                os.listdir(VIDEO_FOLDER) if os.path.exists(VIDEO_FOLDER) else "Missing"
+            ),
+            "json_data": (
+                os.listdir(JSON_FOLDER) if os.path.exists(JSON_FOLDER) else "Missing"
+            ),
+        }
+    )
 
 
 if __name__ == "__main__":
