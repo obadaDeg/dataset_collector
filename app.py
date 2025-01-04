@@ -298,15 +298,27 @@ def delete_all():
 @require_auth
 def download_all_stream():
     def generate_zip():
+        # Create a temp.zip file on disk
         with zipfile.ZipFile("temp.zip", "w") as zip_file:
-            # Add your files one by one
+            # Add all video files
             for video_filename in os.listdir(VIDEO_FOLDER):
                 if video_filename.endswith(".mp4"):
                     video_path = os.path.join(VIDEO_FOLDER, video_filename)
-                    zip_file.write(video_path, arcname=os.path.join("videos", video_filename))
-            # etc. for JSON files
+                    zip_file.write(
+                        video_path,
+                        arcname=os.path.join("videos", video_filename)
+                    )
 
-        # Read the temp.zip file in chunks
+            # Add all JSON files
+            for json_filename in os.listdir(JSON_FOLDER):
+                if json_filename.endswith(".json"):
+                    json_path = os.path.join(JSON_FOLDER, json_filename)
+                    zip_file.write(
+                        json_path,
+                        arcname=os.path.join("json_data", json_filename)
+                    )
+
+        # Stream temp.zip in chunks
         with open("temp.zip", "rb") as f:
             while True:
                 chunk = f.read(8192)
@@ -314,10 +326,11 @@ def download_all_stream():
                     break
                 yield chunk
 
-    return Response(generate_zip(), mimetype="application/zip",
-                    headers={
-                        'Content-Disposition': 'attachment; filename=all_datasets_streamed.zip'
-                    })
+    return Response(
+        generate_zip(),
+        mimetype="application/zip",
+        headers={'Content-Disposition': 'attachment; filename=all_datasets_streamed.zip'}
+    )
 
 
 if __name__ == "__main__":
