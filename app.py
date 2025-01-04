@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 import os
 import re
 import json
@@ -24,6 +25,7 @@ def sanitize_filename(filename):
 
 
 app = Flask(__name__)
+CORS(app)
 
 # Directory to save uploads
 UPLOAD_FOLDER = os.path.join(os.environ.get("HOME", "/tmp"), "uploads")
