@@ -25,7 +25,7 @@ def sanitize_filename(filename):
 
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Directory to save uploads
 UPLOAD_FOLDER = os.path.join(os.environ.get("HOME", "/tmp"), "uploads")
