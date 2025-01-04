@@ -207,6 +207,26 @@ def debug_files():
             ),
         }
     )
+    
+    
+@app.route("/delete_all", methods=["GET"])
+def delete_all():
+    try:
+        for filename in os.listdir(VIDEO_FOLDER):
+            if filename.endswith(".mp4"):
+                timestamp = os.path.splitext(filename)[0]
+                video_path = os.path.join(VIDEO_FOLDER, filename)
+                json_filename = f"{timestamp}.json"
+                json_path = os.path.join(JSON_FOLDER, json_filename)
+
+                if os.path.exists(video_path):
+                    os.remove(video_path)
+                if os.path.exists(json_path):
+                    os.remove(json_path)
+
+        return jsonify({"message": "All datasets deleted"}), 200
+    except Exception as e:
+        return jsonify({"message": f"An error occurred: {str(e)}"}), 500
 
 
 if __name__ == "__main__":
