@@ -5,7 +5,15 @@ import json
 from datetime import datetime
 import zipfile
 from io import BytesIO
+from dotenv import load_dotenv
 
+load_dotenv()
+
+# Secret token to authenticate API requests
+API_SECRET_TOKEN = os.environ.get("API_SECRET_TOKEN")
+
+if not API_SECRET_TOKEN:
+    raise ValueError("API_SECRET_TOKEN environment variable is not set!")
 
 # Utility function to sanitize filenames
 def sanitize_filename(filename):
@@ -28,6 +36,17 @@ os.makedirs(JSON_FOLDER, exist_ok=True)
 
 if not os.access(VIDEO_FOLDER, os.W_OK) or not os.access(JSON_FOLDER, os.W_OK):
     raise PermissionError("Upload directories are not writable.")
+
+
+
+def require_auth(func):
+    def wrapper(*args, **kwargs):
+        token = request.headers.get("Authorization")
+        if not token or token != f"Bearer {API_SECRET_TOKEN}":
+            return jsonify({"message": "Unauthorized"}), 403
+        return func(*args, **kwargs)
+    wrapper.__name__ = func.__name__
+    return wrapper
 
 
 @app.route("/upload", methods=["POST"])
@@ -94,6 +113,7 @@ def upload_file():
 
 
 @app.route("/download/<timestamp>", methods=["GET"])
+@require_auth
 def download_dataset(timestamp):
     """
     Endpoint to download video and JSON data as a dataset based on timestamp.
@@ -132,6 +152,7 @@ def download_dataset(timestamp):
 
 
 @app.route("/list", methods=["GET"])
+@require_auth
 def list_datasets():
     """
     Endpoint to list available datasets.
@@ -146,6 +167,7 @@ def list_datasets():
 
 
 @app.route("/download_all", methods=["GET"])
+@require_auth
 def download_all_datasets():
     try:
         print(f"Video Folder: {os.listdir(VIDEO_FOLDER)}")
@@ -196,6 +218,7 @@ def download_all_datasets():
 
 
 @app.route("/debug", methods=["GET"])
+@require_auth
 def debug_files():
     return jsonify(
         {
@@ -210,6 +233,7 @@ def debug_files():
     
     
 @app.route("/delete_all", methods=["GET"])
+@require_auth
 def delete_all():
     try:
         for filename in os.listdir(VIDEO_FOLDER):
@@ -227,7 +251,7 @@ def delete_all():
         return jsonify({"message": "All datasets deleted"}), 200
     except Exception as e:
         return jsonify({"message": f"An error occurred: {str(e)}"}), 500
-
+    
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
