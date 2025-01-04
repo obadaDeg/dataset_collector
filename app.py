@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, Response
 from flask_cors import CORS
 import os
 import re
@@ -294,6 +294,31 @@ def delete_all():
     except Exception as e:
         return jsonify({"message": f"An error occurred: {str(e)}"}), 500
     
+@app.route("/all_stream", methods=["GET"])
+@require_auth
+def download_all_stream():
+    def generate_zip():
+        with zipfile.ZipFile("temp.zip", "w") as zip_file:
+            # Add your files one by one
+            for video_filename in os.listdir(VIDEO_FOLDER):
+                if video_filename.endswith(".mp4"):
+                    video_path = os.path.join(VIDEO_FOLDER, video_filename)
+                    zip_file.write(video_path, arcname=os.path.join("videos", video_filename))
+            # etc. for JSON files
+
+        # Read the temp.zip file in chunks
+        with open("temp.zip", "rb") as f:
+            while True:
+                chunk = f.read(8192)
+                if not chunk:
+                    break
+                yield chunk
+
+    return Response(generate_zip(), mimetype="application/zip",
+                    headers={
+                        'Content-Disposition': 'attachment; filename=all_datasets_streamed.zip'
+                    })
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
