@@ -107,6 +107,12 @@ def upload_file():
             "gyroscopeData": json_data.get("gyroscopeData", []),
             "accelerometerData": json_data.get("accelerometerData", []),
         }
+        
+        print(f"Uploaded video: {video_filename}")
+        print(f"Uploaded JSON: {json_filename}")
+        # path
+        print(f"Video path: {video_path}")
+        print(f"JSON path: {json_path}")
 
         return jsonify(response_data), 200
 
@@ -149,6 +155,38 @@ def download_dataset(timestamp):
             download_name=f"{timestamp}_dataset.zip",
         )
 
+    except Exception as e:
+        return jsonify({"message": f"An error occurred: {str(e)}"}), 500
+
+@app.route("/all", methods=["GET"])
+@require_auth
+def download_all():
+    try:
+        # Create a ZIP buffer
+        zip_buffer = BytesIO()
+
+        with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+            # Add all video files to a "videos" folder in the ZIP
+            for video_filename in os.listdir(VIDEO_FOLDER):
+                if video_filename.endswith(".mp4"):
+                    video_path = os.path.join(VIDEO_FOLDER, video_filename)
+                    zip_file.write(video_path, arcname=os.path.join("videos", video_filename))
+
+            # Add all JSON files to a "json_data" folder in the ZIP
+            for json_filename in os.listdir(JSON_FOLDER):
+                if json_filename.endswith(".json"):
+                    json_path = os.path.join(JSON_FOLDER, json_filename)
+                    zip_file.write(json_path, arcname=os.path.join("json_data", json_filename))
+
+        # Move the ZIP buffer to the beginning
+        zip_buffer.seek(0)
+
+        return send_file(
+            zip_buffer,
+            mimetype="application/zip",
+            as_attachment=True,
+            download_name="all_datasets_separated.zip",
+        )
     except Exception as e:
         return jsonify({"message": f"An error occurred: {str(e)}"}), 500
 
