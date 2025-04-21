@@ -9,6 +9,8 @@ The API allows participants to easily upload videos along with corresponding mot
 ## Deployed Demo
 [https://dataset-collector.onrender.com](https://dataset-collector.onrender.com)
 
+Try to naviagte between the endpoints provided through this document.
+
 ## Key Features
 
 - **Secure Video & Sensor Data Collection**: Upload MP4 videos with corresponding JSON sensor data
