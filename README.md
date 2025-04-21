@@ -6,6 +6,9 @@ This project is a Flask-based backend API deployed on Vercel Cloud that facilita
 
 The API allows participants to easily upload videos along with corresponding motion sensor data (gyroscope and accelerometer), which are then stored securely on the server. The collected dataset was successfully used to analyze posture patterns for a pose estimation project.
 
+## Deployed Demo
+[https://dataset-collector.onrender.com](https://dataset-collector.onrender.com)
+
 ## Key Features
 
 - **Secure Video & Sensor Data Collection**: Upload MP4 videos with corresponding JSON sensor data
