@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This project is a Flask-based backend API deployed on Vercel Cloud that facilitates the collection of video datasets from remote participants. The system was specifically designed to overcome geographical challenges in gathering posture data for pose estimation research.
+This project is a Flask-based backend API deployed on Render Cloud that facilitates the collection of video datasets from remote participants. The system was specifically designed to overcome geographical challenges in gathering posture data for pose estimation research.
 
 The API allows participants to easily upload videos along with corresponding motion sensor data (gyroscope and accelerometer), which are then stored securely on the server. The collected dataset was successfully used to analyze posture patterns for a pose estimation project.
 
@@ -56,7 +56,7 @@ The API successfully facilitated the collection of 90 videos from participants, 
 
 ## Deployment
 
-The application is configured to deploy on Vercel using the included Procfile:
+The application is configured to deploy on Render using the included Procfile:
 ```
 web: gunicorn app:app --timeout 1000 --bind 0.0.0.0:$PORT
 ```
